@@ -42,6 +42,10 @@
 #include <std_srvs/Empty.h>
 #include <std_srvs/Trigger.h>
 
+#include <chrono>  // Add this line
+#include <thread>  // Add this line
+
+
 boost::format g_format;
 bool stamped_filename;
 bool save_all_image, save_image_service;
@@ -117,7 +121,7 @@ public:
 
   void callbackWithCameraInfo(const sensor_msgs::ImageConstPtr& image_msg, const sensor_msgs::CameraInfoConstPtr& info)
   {
-    has_camera_info_ = true;
+    has_camera_info_ = false;
 
     if (!save_image_service && request_start_end) {
       if (start_time_ == ros::Time(0))
@@ -201,6 +205,7 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
   image_transport::ImageTransport it(nh);
   std::string topic = nh.resolveName("image");
+  
 
   Callbacks callbacks;
   // Useful when CameraInfo is being published
@@ -231,6 +236,15 @@ int main(int argc, char** argv)
     ros::ServiceServer srv_end = local_nh.advertiseService(
       "end", &Callbacks::callbackEndSave, &callbacks);
   // }
+  while (ros::ok())
+    {
+      // Your node's logic here
 
-  ros::spin();
+      // Delay to achieve the desired rate (e.g., 1 image per second)
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+      //ROS_INFO("test");
+      // Process any pending ROS callbacks
+      ros::spinOnce();
+    }
+
 }
